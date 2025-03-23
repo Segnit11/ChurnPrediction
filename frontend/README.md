@@ -1,70 +1,125 @@
-# Getting Started with Create React App
+### **Detailed System Design: Churn Prediction Web Application**
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+#### Goals
+- Allow users to select a customer and input their data.
+- Predict churn in real-time using your `StackingClassifier`.
+- Display results visually (gauge) and analytically (model breakdown, explanation, email).
 
-## Available Scripts
+#### Components
 
-In the project directory, you can run:
+1. **Frontend (React.js)**:
+   - **Purpose**: Interactive UI for data input and result visualization.
+   - **Features**:
+     - **Form**:
+       - **Select a Customer**: Dropdown to pick a customer (e.g., by `CustomerId` or `Surname`).
+       - **Inputs**: `CreditScore`, `Balance`, `Location` (Geography), `Number of Products`, `Gender`, `Has Credit Card`, `Is Active Member`, `Age`, `Estimated Salary`, `Tenure (Years)`—11 fields total.
+       - **Submit Button**: Triggers prediction request.
+     - **Gauge**: Visualizes churn probability (e.g., 0-100%, color-coded: green low, red high).
+     - **Churn Probability by Model**: Table or list showing probabilities from Random Forest, GradientBoostingClassifier, XGBoost, and StackingClassifier.
+     - **Explanation of Prediction**: Text explaining why the churn probability is high/low (e.g., “High `Age` and low `NumOfProducts` suggest retention”).
+     - **Personalized Email**: Text box with a draft email to the customer (e.g., “Dear [Surname], we’ve noticed…”).
+   - **Tech**: React.js with libraries:
+     - **Form Handling**: `react-hook-form` for simplicity.
+     - **Gauge**: `react-gauge-chart` or `react-circular-progressbar`.
+     - **Styling**: CSS or Tailwind CSS for a clean look.
+   - **Interaction**: Sends a POST request to the Flask backend with form data as JSON, receives prediction response.the **Flask backend** with form data as JSON, receives prediction response.
 
-### `npm start`
+2. **Backend (Flask)**:
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in your browser.
+   - **Purpose**: Processes inputs, runs predictions, generates explanations and emails.
+   - **Endpoints**:
+     - **`/customers` (GET)**: Returns a list of customer IDs/names for the dropdown (could be static or from a DB).
+     - **`/predict` (POST)**: Accepts form data, preprocesses it, runs all models, and returns results.
+   - **Logic**:
+     - **Preprocessing**: Uses `preprocessing.py` with loaded `geo_encoder.pkl`, `gender_encoder.pkl`, `scaler.pkl`.
+     - **Inference**: 
+       - Loads `churn_model_stacking.pkl` (StackingClassifier).
+       - Also loads individual models (RF, GBC, XGBoost) for per-model probabilities—requires saving these separately.
+     - **Explanation**: Rule-based logic (e.g., if `NumOfProducts >= 3`, “High product count increases churn risk”).
+     - **Email**: Template with placeholders (e.g., “Dear {Surname}, your churn risk is {probability}%…”).
+   - **Response**: JSON with:
+     - `prediction` (0/1).
+     - `probability` (StackingClassifier).
+     - `model_probabilities` (RF, GBC, XGBoost, Stacking).
+     - `explanation` (text).
+     - `email` (text).
+   - **Tech**: Flask, `joblib` for model loading, Python for logic.
 
-The page will reload when you make changes.\
-You may also see any lint errors in the console.
 
-### `npm test`
+3. **Model Artifacts**:
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+   - **Files**:
+     - Current: `churn_model_stacking.pkl`, `geo_encoder.pkl`, `gender_encoder.pkl`, `scaler.pkl`.
+     - New: Save individual models (`rf_model.pkl`, `gbc_model.pkl`, `xgb_model.pkl`) from `model.py`.
+   - **Role**: StackingClassifier for main prediction, individual models for breakdown.
 
-### `npm run build`
+4. **Deployment**:
+   - **Local**: Flask dev server + React dev server (via `npm start`).
+   - **Production**: Heroku (Flask backend + React build), with static files served via Flask or a CDN.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+---
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+### System Workflow
 
-### `npm run eject`
+1. **User Interaction**:
+   - Loads the React app, sees a form.
+   - Selects a customer from the dropdown (e.g., “Smith, 1001”).
+   - Fills in fields (e.g., `Age=40`, `NumOfProducts=2`).
+   - Clicks “Predict”.
 
-**Note: this is a one-way operation. Once you `eject`, you can't go back!**
+2. **Frontend**:
+   - Sends POST to `http://backend/predict` with JSON:
+     ```json
+     {
+       "CustomerId": 1001, "Surname": "Smith", "CreditScore": 600, "Geography": "Germany",
+       "Gender": "Male", "Age": 40, "Tenure": 5, "Balance": 10000, "NumOfProducts": 2,
+       "HasCrCard": 1, "IsActiveMember": 1, "EstimatedSalary": 50000
+     }
 
-If you aren't satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
+3. **Backend**:
+   - Receives JSON, converts to DataFrame.
+   - Preprocesses using preprocess_data(training=False, ...) → 11 features.
+   - Runs predictions:
+       - StackingClassifier → prediction, probability.
+       - RF, GBC, XGBoost → individual probabilities.
+   - Generates:
+       - Explanation (e.g., “Low NumOfProducts reduces churn risk”).
+       - Email (e.g., “Dear Smith, your churn risk is 16%…”).
 
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you're on your own.
+4. **Frontend**:
+   - Updates **UI** with:
+     - **Gauge visualization**.
+     - **Model probability breakdown**.
+     - **Explanation text**.
+     - **Email draft**.
 
-You don't have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn't feel obligated to use this feature. However we understand that this tool wouldn't be useful if you couldn't customize it when you are ready for it.
+### **Architecture Diagram**
 
-## Learn More
+```
+[User]
+   |
+[Frontend: React.js]
+   ├── Form: Customer Select, Inputs
+   ├── Gauge: Churn Probability
+   ├── Table: Model Probabilities
+   ├── Text: Explanation
+   ├── Text: Email Draft
+   |    GET /customers
+   |    POST /predict (JSON)
+   v
+[Backend: Flask]
+   ├── /customers: Returns customer list
+   ├── /predict:
+   |    ├── Preprocess: preprocessing.py + .pkl files
+   |    ├── Predict: Stacking + RF, GBC, XGBoost models
+   |    ├── Explain: Rule-based logic
+   |    ├── Email: Template
+   |    └── Response: JSON
+   |
+[Model Artifacts]
+   ├── churn_model_stacking.pkl
+   ├── rf_model.pkl, gbc_model.pkl, xgb_model.pkl
+   └── geo_encoder.pkl, gender_encoder.pkl, scaler.pkl
+```
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
