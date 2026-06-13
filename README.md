@@ -1,3 +1,60 @@
+# ChurnGuard — AI Churn Prediction & Retention Intelligence
+
+A four-model ML ensemble that scores bank customers for churn risk, explains the
+drivers in plain language, drafts a personalized retention email, and surfaces
+portfolio-wide analytics — wrapped in a modern, animated React UI.
+
+## Quickstart
+
+### Backend (Flask)
+```bash
+pip install -r requirements.txt
+# Optional: enable Gemini-generated explanations/emails
+export GEMINI_API_KEY=your_key
+python app.py            # serves on http://localhost:5001
+```
+On first run, the model artifacts that aren't committed are downloaded from
+Google Drive automatically.
+
+### Frontend (React + Tailwind v4 + Framer Motion)
+```bash
+cd frontend
+npm install
+npm start                # http://localhost:3000
+```
+The UI talks to `http://localhost:5001` by default. Point it elsewhere with
+`REACT_APP_API_URL`.
+
+> **Styling note:** Tailwind v4 is compiled with the official Tailwind CLI
+> (`src/styles/tailwind.css` → `src/styles/output.css`) because Create React
+> App's webpack pipeline doesn't support the v4 PostCSS plugin. The `start` and
+> `build` scripts run the compiler automatically (see `tailwind:build`).
+
+## API Reference
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET  | `/health` | Service + loaded-model status. |
+| GET  | `/customers?q=&limit=&offset=` | Searchable, paginated customer list. |
+| GET  | `/analytics` | Portfolio churn analytics (by geography, age, products, activity, credit band). |
+| GET  | `/feature-importance` | Global feature importances driving predictions. |
+| POST | `/predict` | Score one customer → probability, per-model breakdown, **confidence**, **risk tier + action playbook**, explanation, retention email. |
+| POST | `/predict/batch` | Score up to 500 customers at once with a summary breakdown by risk tier. |
+
+`/predict` requests are validated (required fields + sensible numeric ranges) and
+return `400` with a `details` list on bad input.
+
+## Frontend highlights
+- Cryptgen-style dark fintech marketing layout: animated aurora background, glass
+  cards, gradient typography.
+- **Framer Motion** spring entrance animations, staggered reveals, animated KPI
+  counters, and a floating dashboard preview — all `prefers-reduced-motion` aware.
+- Live **Insights** section rendered from `/analytics`, and an interactive
+  **Predictor** with a results dashboard (gauge, model breakdown, risk playbook,
+  explanation, copy-able email).
+
+---
+
 ### **Detailed System Design: Churn Prediction Web Application**
 
 #### Goals

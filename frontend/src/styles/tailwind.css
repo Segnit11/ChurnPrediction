@@ -1,0 +1,143 @@
+@import "tailwindcss";
+
+/* ----------------------------------------------------------------------------
+   ChurnGuard — Design System (dark fintech / SaaS high-tech)
+   Generated from ui-ux-pro-max design system: glassmorphism + gradient +
+   spring animation. Fonts: Fira Sans (UI) + Fira Code (data/mono).
+---------------------------------------------------------------------------- */
+@import url('https://fonts.googleapis.com/css2?family=Fira+Code:wght@400;500;600;700&family=Fira+Sans:wght@300;400;500;600;700;800&display=swap');
+
+@theme {
+  /* Brand palette — deep slate canvas, indigo→violet brand, emerald = retained,
+     amber/red = at-risk. */
+  --color-canvas: #070b16;
+  --color-surface: #0f1626;
+  --color-surface-2: #151d31;
+  --color-border: #243049;
+  --color-border-soft: #1b2540;
+
+  --color-ink: #f8fafc;
+  --color-ink-muted: #aab4c8;
+  --color-ink-faint: #6b7793;
+
+  --color-brand: #6366f1;
+  --color-brand-bright: #818cf8;
+  --color-accent: #a855f7;
+  --color-cyan: #22d3ee;
+
+  --color-safe: #10b981;
+  --color-safe-bright: #34d399;
+  --color-warn: #f59e0b;
+  --color-danger: #ef4444;
+  --color-danger-bright: #f87171;
+
+  --font-sans: 'Fira Sans', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'Fira Code', ui-monospace, monospace;
+
+  --radius-xl: 1.25rem;
+  --radius-2xl: 1.75rem;
+
+  /* Spring-ish easing token */
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+  }
+  body {
+    margin: 0;
+    background-color: var(--color-canvas);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+  ::selection {
+    background: color-mix(in srgb, var(--color-brand) 35%, transparent);
+    color: #fff;
+  }
+  /* Themed scrollbar */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-track {
+    background: var(--color-canvas);
+  }
+  ::-webkit-scrollbar-thumb {
+    background: var(--color-border);
+    border-radius: 9999px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: var(--color-brand);
+  }
+}
+
+@layer components {
+  /* Frosted-glass card */
+  .glass {
+    background: color-mix(in srgb, var(--color-surface) 70%, transparent);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid var(--color-border-soft);
+  }
+
+  /* Gradient text */
+  .text-gradient {
+    background: linear-gradient(
+      120deg,
+      var(--color-brand-bright),
+      var(--color-accent) 55%,
+      var(--color-cyan)
+    );
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+  }
+
+  /* Animated conic glow used behind hero / cards */
+  .aurora {
+    background:
+      radial-gradient(40% 60% at 20% 20%, color-mix(in srgb, var(--color-brand) 45%, transparent), transparent 60%),
+      radial-gradient(40% 50% at 80% 10%, color-mix(in srgb, var(--color-accent) 40%, transparent), transparent 60%),
+      radial-gradient(50% 60% at 60% 90%, color-mix(in srgb, var(--color-cyan) 28%, transparent), transparent 60%);
+    filter: blur(48px);
+  }
+
+  .btn-primary {
+    background-image: linear-gradient(120deg, var(--color-brand), var(--color-accent));
+    color: #fff;
+    box-shadow: 0 10px 30px -8px color-mix(in srgb, var(--color-brand) 70%, transparent);
+    transition: transform 0.18s var(--ease-spring), box-shadow 0.18s var(--ease-spring), filter 0.18s ease;
+  }
+  .btn-primary:hover {
+    filter: brightness(1.08);
+    box-shadow: 0 16px 40px -10px color-mix(in srgb, var(--color-accent) 75%, transparent);
+  }
+  .btn-primary:active {
+    transform: scale(0.97);
+  }
+}
+
+/* Respect reduced motion globally */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Grid backdrop helper */
+.bg-grid {
+  background-image:
+    linear-gradient(to right, color-mix(in srgb, var(--color-border) 60%, transparent) 1px, transparent 1px),
+    linear-gradient(to bottom, color-mix(in srgb, var(--color-border) 60%, transparent) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+  -webkit-mask-image: radial-gradient(ellipse 80% 60% at 50% 0%, #000 40%, transparent 100%);
+}

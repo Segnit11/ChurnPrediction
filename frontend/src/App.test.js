@@ -1,8 +1,9 @@
 import { render, screen } from '@testing-library/react';
 import App from './App';
 
-test('renders learn react link', () => {
+test('renders the ChurnGuard predictor CTA', () => {
   render(<App />);
-  const linkElement = screen.getByText(/learn react/i);
-  expect(linkElement).toBeInTheDocument();
+  // The hero/nav render primary CTAs referencing the prediction flow.
+  const cta = screen.getAllByText(/predict/i);
+  expect(cta.length).toBeGreaterThan(0);
 });
