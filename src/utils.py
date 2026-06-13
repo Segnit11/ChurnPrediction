@@ -1,14 +1,24 @@
 import os
-import google.generativeai as genai
+
+# google-generativeai is optional: when it (or the API key) is missing we fall
+# back to the built-in rule-based explanations/emails. Keeping it optional lets
+# the deployment image stay slim (no heavy Google gRPC stack required).
+try:
+    import google.generativeai as genai
+except ImportError:
+    genai = None
 
 # Configure Gemini API (if available)
 api_key = os.environ.get("GEMINI_API_KEY")
-if api_key:
+if api_key and genai:
     genai.configure(api_key=api_key)
     model = genai.GenerativeModel("gemini-2.0-flash")
 else:
     model = None
-    print("Warning: GEMINI_API_KEY not set. Using fallback logic.")
+    if not genai:
+        print("Note: google-generativeai not installed. Using fallback logic.")
+    else:
+        print("Warning: GEMINI_API_KEY not set. Using fallback logic.")
 
 def explain_prediction(probability, input_dict, surname):
     """Generate a detailed explanation for churn likelihood, with or without Gemini."""

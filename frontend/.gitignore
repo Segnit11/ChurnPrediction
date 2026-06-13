@@ -11,6 +11,9 @@
 # production
 /build
 
+# generated Tailwind output (built via `npm run tailwind:build`)
+/src/styles/output.css
+
 # misc
 .DS_Store
 .env.local

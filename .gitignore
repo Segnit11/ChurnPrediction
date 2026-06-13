@@ -1,0 +1,7 @@
+__pycache__/
+*.pyc
+venv/
+.env
+.venv/
+churn_model_stacking.pkl
+rf_model.pkl
