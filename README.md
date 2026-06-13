@@ -1,3 +1,16 @@
+---
+title: ChurnGuard API
+emoji: 🛡️
+colorFrom: indigo
+colorTo: purple
+sdk: docker
+app_port: 7860
+pinned: false
+---
+
+<!-- The YAML block above is metadata for the Hugging Face Space (backend).
+     GitHub renders it as a small header; it is required by HF for Docker Spaces. -->
+
 # ChurnGuard — AI Churn Prediction & Retention Intelligence
 
 A four-model ML ensemble that scores bank customers for churn risk, explains the

@@ -1,0 +1,16 @@
+# Keep the backend image small — exclude the frontend, envs, notebooks, builds.
+frontend/
+venv/
+.venv/
+notebooks/
+__pycache__/
+**/__pycache__/
+*.pyc
+.git/
+.gitignore
+build/
+*.md
+*.md.save
+# The two large models are fetched at runtime via gdown, never baked in.
+churn_model_stacking.pkl
+rf_model.pkl
