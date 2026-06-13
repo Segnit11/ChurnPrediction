@@ -11,6 +11,9 @@ ENV PYTHONUNBUFFERED=1 \
     PIP_NO_CACHE_DIR=1 \
     PORT=7860 \
     HF_HOME=/tmp/hf \
+    # Cap OpenMP threads — cpu-basic has 2 vCPUs; also avoids xgboost/OpenMP
+    # thread oversubscription on the shared runner.
+    OMP_NUM_THREADS=2 \
     # gdown/joblib write model files here at startup
     HOME=/app
 
@@ -33,8 +36,10 @@ RUN chmod -R 777 /app
 
 EXPOSE 7860
 
-# Single worker + --preload so the 1GB+ of models are loaded once in the master
-# and shared with the worker via copy-on-write (keeps memory in check).
-# --timeout 0 disables the request timeout so the first cold model download
-# (~629MB) never kills the worker.
-CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--workers", "1", "--preload", "--timeout", "0", "app:app"]
+# IMPORTANT: do NOT use --preload. xgboost uses OpenMP, and loading it in the
+# master before gunicorn forks deadlocks the worker on first prediction
+# (OpenMP + fork is unsafe). Without --preload each worker loads the models
+# after forking, so OpenMP initialises cleanly in the worker process.
+# One worker keeps memory in check; --timeout 300 tolerates the cold model
+# download/load at boot and slow CPU inference while still recycling true hangs.
+CMD ["gunicorn", "--bind", "0.0.0.0:7860", "--workers", "1", "--timeout", "300", "app:app"]
