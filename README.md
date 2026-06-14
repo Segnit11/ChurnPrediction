@@ -17,26 +17,48 @@ A four-model ML ensemble that scores bank customers for churn risk, explains the
 drivers in plain language, drafts a personalized retention email, and surfaces
 portfolio-wide analytics — wrapped in a modern, animated React UI.
 
-## Quickstart
+## Run locally
 
-### Backend (Flask)
+You need **two terminals** — one for the Flask API, one for the React UI.
+
+### Prerequisites
+- **Python 3.10+**
+- **Node.js 18+** and npm
+- ~700 MB free disk space (large model artifacts download on first run)
+
+### 1. Backend (Flask API → http://localhost:5001)
+
 ```bash
+# from the project root
+python -m venv .venv
+source .venv/bin/activate            # Windows: .venv\Scripts\activate
 pip install -r requirements.txt
-# Optional: enable Gemini-generated explanations/emails
-export GEMINI_API_KEY=your_key
-python app.py            # serves on http://localhost:5001
-```
-On first run, the model artifacts that aren't committed are downloaded from
-Google Drive automatically.
 
-### Frontend (React + Tailwind v4 + Framer Motion)
+# Optional: enable Gemini-generated explanations/retention emails.
+# Without it, the app falls back to rule-based text and still works.
+export GEMINI_API_KEY=your_key       # Windows: set GEMINI_API_KEY=your_key
+
+python app.py                        # serves on http://localhost:5001
+```
+
+On first run, the model artifacts that aren't committed to the repo
+(`churn_model_stacking.pkl`, `rf_model.pkl`, etc.) are **downloaded from Google
+Drive automatically** via `gdown`. This can take a few minutes. The server
+listens on port `5001` by default (override with the `PORT` env var).
+
+Check it's up: `curl http://localhost:5001/health`
+
+### 2. Frontend (React + Tailwind v4 + Framer Motion → http://localhost:3000)
+
 ```bash
 cd frontend
 npm install
-npm start                # http://localhost:3000
+npm start                            # opens http://localhost:3000
 ```
-The UI talks to `http://localhost:5001` by default. Point it elsewhere with
-`REACT_APP_API_URL`.
+
+The UI talks to `http://localhost:5001` by default. Point it at another backend
+with `REACT_APP_API_URL` (e.g. create `frontend/.env` with
+`REACT_APP_API_URL=http://localhost:5001`).
 
 > **Styling note:** Tailwind v4 is compiled with the official Tailwind CLI
 > (`src/styles/tailwind.css` → `src/styles/output.css`) because Create React
